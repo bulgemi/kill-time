@@ -77,13 +77,11 @@
 
 ### 실행 방법
 
-로컬 서버로 확인하려면 프로젝트 루트에서 다음 명령을 실행합니다.
+아래 임베딩 페이지를 열면 `index.html`이 렌더링되어 바로 게임 화면이 보입니다.
 
-```bash
-python3 -m http.server 4173
-```
+- [시간 도둑 잡기 바로 플레이](https://htmlpreview.github.io/?https://github.com/bulgemi/kill-time/blob/main/index.html)
 
-그 다음 브라우저에서 `http://localhost:4173/index.html`에 접속합니다.
+로컬에서 확인할 때는 저장소를 받은 뒤 [`index.html`](index.html) 파일을 더블 클릭해도 됩니다.
 
 ### 구현 파일
 
