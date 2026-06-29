@@ -1,0 +1,1177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>시간 도둑 잡기 - Agent 4</title>
+  <style>
+    :root {
+      --ink: #182033;
+      --muted: #667085;
+      --panel: rgba(255, 255, 255, 0.92);
+      --line: rgba(24, 32, 51, 0.12);
+      --blue: #2f80ed;
+      --pink: #e85d88;
+      --mint: #23a97d;
+      --gold: #f4b740;
+      --bad: #e5484d;
+      --ok: #19a15f;
+      --shadow: 0 18px 50px rgba(22, 31, 53, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 14% 18%, rgba(47, 128, 237, 0.18), transparent 26rem),
+        radial-gradient(circle at 82% 8%, rgba(244, 183, 64, 0.2), transparent 24rem),
+        linear-gradient(135deg, #f6fbff 0%, #fff9f1 44%, #f2fff9 100%);
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    .app {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 1.15fr repeat(4, minmax(82px, 0.42fr)) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px clamp(12px, 2.4vw, 28px);
+      background: rgba(255, 255, 255, 0.68);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+      z-index: 8;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: clamp(18px, 2.2vw, 27px);
+      line-height: 1.05;
+    }
+
+    .brand span,
+    .metric span {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.74);
+      box-shadow: 0 8px 22px rgba(28, 37, 64, 0.06);
+    }
+
+    .metric strong {
+      display: block;
+      min-height: 26px;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(17px, 2vw, 24px);
+      line-height: 1.1;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .icon-btn,
+    .primary,
+    .ghost {
+      min-height: 42px;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    }
+
+    .icon-btn {
+      width: 44px;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 22px rgba(28, 37, 64, 0.08);
+    }
+
+    .primary,
+    .ghost {
+      padding: 0 16px;
+      font-weight: 800;
+    }
+
+    .primary {
+      color: #ffffff;
+      background: var(--ink);
+      box-shadow: 0 12px 28px rgba(24, 32, 51, 0.22);
+    }
+
+    .ghost {
+      background: #ffffff;
+      border: 1px solid var(--line);
+    }
+
+    .icon-btn:hover,
+    .primary:hover,
+    .ghost:hover {
+      transform: translateY(-1px);
+    }
+
+    .arena-wrap {
+      position: relative;
+      min-height: 0;
+      padding: clamp(10px, 2vw, 22px);
+    }
+
+    .arena {
+      position: relative;
+      height: 100%;
+      min-height: 420px;
+      overflow: hidden;
+      border: 1px solid rgba(24, 32, 51, 0.13);
+      border-radius: 8px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.74)),
+        repeating-linear-gradient(0deg, rgba(24, 32, 51, 0.05) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, rgba(24, 32, 51, 0.045) 0 1px, transparent 1px 48px);
+      box-shadow: var(--shadow);
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .arena::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(47, 128, 237, 0.1), transparent 32%, transparent 68%, rgba(35, 169, 125, 0.1)),
+        linear-gradient(180deg, rgba(244, 183, 64, 0.16), transparent 24%);
+    }
+
+    .stage-label {
+      position: absolute;
+      left: 14px;
+      bottom: 12px;
+      z-index: 3;
+      max-width: min(520px, calc(100% - 28px));
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+      line-height: 1.35;
+      color: #344054;
+      backdrop-filter: blur(10px);
+    }
+
+    .target {
+      position: absolute;
+      width: var(--size);
+      height: var(--size);
+      left: var(--x);
+      top: var(--y);
+      border: 0;
+      padding: 0;
+      border-radius: 50%;
+      background: transparent;
+      cursor: crosshair;
+      transform: translate(-50%, -50%) scale(0.74);
+      animation: popIn 150ms ease-out forwards, wiggle var(--wiggle, 880ms) ease-in-out infinite;
+      filter: drop-shadow(0 15px 16px rgba(36, 44, 70, 0.18));
+      z-index: 4;
+    }
+
+    .target img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .target.fake {
+      filter: grayscale(0.85) saturate(0.8) drop-shadow(0 15px 16px rgba(36, 44, 70, 0.16));
+    }
+
+    .target.fake::after {
+      content: "";
+      position: absolute;
+      inset: 11%;
+      border-radius: 50%;
+      border: 5px solid rgba(229, 72, 77, 0.74);
+      transform: rotate(-14deg);
+      pointer-events: none;
+    }
+
+    .target.clock {
+      display: grid;
+      place-items: center;
+      background: #fff7d8;
+      border: 5px solid #ffd767;
+      box-shadow: inset 0 0 0 4px #ffffff, 0 15px 20px rgba(124, 85, 0, 0.16);
+    }
+
+    .target.clock::before {
+      content: "";
+      width: 58%;
+      height: 58%;
+      border-radius: 50%;
+      border: 5px solid #263b3a;
+      background:
+        linear-gradient(90deg, transparent 47%, #263b3a 47% 53%, transparent 53%),
+        linear-gradient(15deg, transparent 47%, #263b3a 47% 53%, transparent 53%);
+    }
+
+    .target.moving {
+      transition: left 850ms ease-in-out, top 850ms ease-in-out;
+    }
+
+    .target.warping {
+      animation: popIn 150ms ease-out forwards, wiggle 520ms ease-in-out infinite, flicker 680ms ease-in-out infinite;
+    }
+
+    .target.despawn {
+      animation: vanish 170ms ease-in forwards;
+      pointer-events: none;
+    }
+
+    .float {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      z-index: 7;
+      min-width: 74px;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--color);
+      text-shadow: 0 2px 0 #ffffff, 0 10px 22px rgba(20, 28, 44, 0.14);
+      animation: floatUp 760ms ease-out forwards;
+      pointer-events: none;
+    }
+
+    .blocker {
+      position: absolute;
+      z-index: 6;
+      width: clamp(150px, 24vw, 300px);
+      min-height: 76px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(229, 72, 77, 0.22);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 18px 42px rgba(111, 24, 27, 0.2);
+      color: #641d20;
+      font-weight: 800;
+      animation: noticeIn 260ms ease-out forwards;
+      pointer-events: none;
+    }
+
+    .blocker span {
+      display: block;
+      margin-top: 4px;
+      color: #8f3c40;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .rush {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      background: linear-gradient(90deg, rgba(229, 72, 77, 0.16), transparent, rgba(229, 72, 77, 0.16));
+      animation: rushPulse 900ms ease-in-out infinite;
+    }
+
+    .rush.on {
+      opacity: 1;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(246, 251, 255, 0.64);
+      backdrop-filter: blur(10px);
+    }
+
+    .screen.hidden {
+      display: none;
+    }
+
+    .dialog {
+      width: min(940px, 100%);
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 3vw, 30px);
+    }
+
+    .dialog h1,
+    .dialog h2 {
+      margin: 0;
+      line-height: 1.05;
+      font-size: clamp(30px, 5vw, 56px);
+    }
+
+    .dialog p {
+      margin: 10px 0 0;
+      color: #475467;
+      line-height: 1.55;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .hero-card {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      min-height: 268px;
+      padding: 14px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.78);
+      cursor: pointer;
+      text-align: center;
+      transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+    }
+
+    .hero-card img {
+      width: min(130px, 38vw);
+      aspect-ratio: 1;
+    }
+
+    .hero-card strong {
+      font-size: 19px;
+    }
+
+    .hero-card span {
+      color: #475467;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+
+    .hero-card.selected {
+      border-color: var(--blue);
+      box-shadow: 0 13px 30px rgba(47, 128, 237, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .dialog-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stage-list {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 16px;
+    }
+
+    .stage-pill {
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      font-weight: 800;
+      color: #475467;
+    }
+
+    .stage-pill.done {
+      color: #08633d;
+      border-color: rgba(25, 161, 95, 0.34);
+      background: rgba(25, 161, 95, 0.1);
+    }
+
+    .stage-pill.active {
+      color: #163a6d;
+      border-color: rgba(47, 128, 237, 0.4);
+      background: rgba(47, 128, 237, 0.12);
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      z-index: 11;
+      max-width: min(560px, calc(100% - 28px));
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: rgba(24, 32, 51, 0.92);
+      color: #ffffff;
+      font-weight: 800;
+      text-align: center;
+      transform: translate(-50%, -18px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @keyframes popIn {
+      to {
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    @keyframes wiggle {
+      0%, 100% {
+        rotate: -2deg;
+      }
+      50% {
+        rotate: 3deg;
+      }
+    }
+
+    @keyframes flicker {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.48;
+      }
+    }
+
+    @keyframes vanish {
+      to {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.45);
+      }
+    }
+
+    @keyframes floatUp {
+      to {
+        opacity: 0;
+        transform: translate(-50%, -130%);
+      }
+    }
+
+    @keyframes noticeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.96);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes rushPulse {
+      0%, 100% {
+        opacity: 0.12;
+      }
+      50% {
+        opacity: 0.34;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        min-height: 100vh;
+      }
+
+      .topbar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .brand {
+        grid-column: 1 / -1;
+      }
+
+      .actions {
+        grid-column: 1 / -1;
+        justify-content: stretch;
+      }
+
+      .actions .icon-btn {
+        flex: 1;
+      }
+
+      .arena-wrap {
+        min-height: 620px;
+      }
+
+      .arena {
+        min-height: 590px;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        grid-template-columns: 92px 1fr;
+        justify-items: start;
+        align-items: center;
+        min-height: 126px;
+        text-align: left;
+      }
+
+      .hero-card img {
+        width: 92px;
+        grid-row: span 2;
+      }
+
+      .stage-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <strong>시간 도둑 잡기</strong>
+        <span id="subtitle">주인공을 고르고 10개의 스테이지를 돌파하세요.</span>
+      </div>
+      <div class="metric">
+        <strong id="stageMetric">-</strong>
+        <span>스테이지</span>
+      </div>
+      <div class="metric">
+        <strong id="scoreMetric">0</strong>
+        <span>점수 / 목표</span>
+      </div>
+      <div class="metric">
+        <strong id="timeMetric">30.0</strong>
+        <span>남은 시간</span>
+      </div>
+      <div class="metric">
+        <strong id="comboMetric">x1</strong>
+        <span>콤보</span>
+      </div>
+      <div class="actions">
+        <button class="icon-btn" id="pauseBtn" title="일시정지" aria-label="일시정지">Ⅱ</button>
+        <button class="icon-btn" id="restartBtn" title="다시 시작" aria-label="다시 시작">↻</button>
+      </div>
+    </header>
+
+    <section class="arena-wrap">
+      <div class="arena" id="arena" aria-label="게임 영역">
+        <div class="rush" id="rush"></div>
+        <div class="toast" id="toast"></div>
+        <div class="stage-label" id="stageLabel"></div>
+        <section class="screen" id="screen"></section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const ASSETS = {
+      thief: "../../assets/time-thief.svg",
+      ruru: "../../assets/hero-ruru.svg",
+      momo: "../../assets/hero-momo.svg",
+      bori: "../../assets/hero-bori.svg"
+    };
+
+    const HEROES = [
+      { id: "ruru", name: "루루", title: "빠른 탐정", asset: ASSETS.ruru, bonus: "시간 도둑 점수 +10%", scoreBoost: 1.1, comboWindow: 0, clockBoost: 0 },
+      { id: "momo", name: "모모", title: "콤보 장인", asset: ASSETS.momo, bonus: "콤보 유지 시간 +1초", scoreBoost: 1, comboWindow: 1000, clockBoost: 0 },
+      { id: "bori", name: "보리", title: "시간 연구가", asset: ASSETS.bori, bonus: "시계 회복 +1초", scoreBoost: 1, comboWindow: 0, clockBoost: 1 }
+    ];
+
+    const STAGES = [
+      { name: "느긋한 오후", target: 100, spawn: 920, life: 1450, fake: 0, clock: 0, move: 0, warp: 0, blockers: false, rush: false, note: "기본 시간 도둑만 등장합니다." },
+      { name: "사라진 5분", target: 150, spawn: 840, life: 1250, fake: 0, clock: 0, move: 0, warp: 0, blockers: false, rush: false, note: "시간 도둑이 조금 더 빨리 사라집니다." },
+      { name: "책상 밑 소동", target: 220, spawn: 790, life: 1180, fake: 0.18, clock: 0, move: 0, warp: 0, blockers: false, rush: false, note: "가짜 도둑이 처음 등장합니다." },
+      { name: "알림 폭풍", target: 300, spawn: 730, life: 1120, fake: 0.2, clock: 0, move: 0, warp: 0, blockers: true, rush: false, note: "방해 알림이 화면 일부를 잠깐 가립니다." },
+      { name: "커피 브레이크", target: 400, spawn: 700, life: 1080, fake: 0.21, clock: 0.13, move: 0, warp: 0, blockers: true, rush: false, note: "시계 아이템으로 시간을 되찾을 수 있습니다." },
+      { name: "퇴근 전쟁", target: 520, spawn: 660, life: 1040, fake: 0.23, clock: 0.14, move: 0.26, warp: 0, blockers: true, rush: false, note: "시간 도둑이 움직이면서 등장합니다." },
+      { name: "집중력 테스트", target: 660, spawn: 610, life: 980, fake: 0.34, clock: 0.14, move: 0.3, warp: 0, blockers: true, rush: false, note: "가짜 도둑의 비율이 높아집니다." },
+      { name: "시간 왜곡", target: 820, spawn: 570, life: 930, fake: 0.34, clock: 0.15, move: 0.34, warp: 0.22, blockers: true, rush: false, note: "일부 도둑은 클릭 직전에 위치가 바뀝니다." },
+      { name: "마지막 10분", target: 1000, spawn: 520, life: 870, fake: 0.36, clock: 0.16, move: 0.38, warp: 0.24, blockers: true, rush: true, note: "제한 시간이 더 빠르게 줄어드는 구간이 생깁니다." },
+      { name: "시간 도둑의 본거지", target: 1250, spawn: 470, life: 820, fake: 0.38, clock: 0.17, move: 0.44, warp: 0.3, blockers: true, rush: true, note: "모든 패턴이 섞여 등장하는 최종 스테이지입니다." }
+    ];
+
+    const STAGE_SECONDS = 30;
+    const BASE_COMBO_WINDOW = 1800;
+    const HIGH_KEY = "agent4-time-thief-high-score";
+    const HIT_SCORE = 20;
+
+    const el = {
+      arena: document.getElementById("arena"),
+      screen: document.getElementById("screen"),
+      toast: document.getElementById("toast"),
+      rush: document.getElementById("rush"),
+      stageLabel: document.getElementById("stageLabel"),
+      subtitle: document.getElementById("subtitle"),
+      stageMetric: document.getElementById("stageMetric"),
+      scoreMetric: document.getElementById("scoreMetric"),
+      timeMetric: document.getElementById("timeMetric"),
+      comboMetric: document.getElementById("comboMetric"),
+      pauseBtn: document.getElementById("pauseBtn"),
+      restartBtn: document.getElementById("restartBtn")
+    };
+
+    const state = {
+      mode: "menu",
+      hero: HEROES[0],
+      stageIndex: 0,
+      score: 0,
+      stageScore: 0,
+      timeLeft: STAGE_SECONDS,
+      combo: 0,
+      lastHitAt: 0,
+      nextSpawnAt: 0,
+      nextBlockerAt: 0,
+      active: new Map(),
+      raf: 0,
+      lastTick: 0,
+      runSeed: 0,
+      rng: mulberry32(1),
+      targetSerial: 0,
+      highScore: Number(localStorage.getItem(HIGH_KEY) || 0)
+    };
+
+    function mulberry32(seed) {
+      let value = seed >>> 0;
+      return function random() {
+        value += 0x6D2B79F5;
+        let t = value;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function now() {
+      return performance.now();
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function randomBetween(min, max) {
+      return min + (max - min) * state.rng();
+    }
+
+    function currentStage() {
+      return STAGES[state.stageIndex];
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      el.pauseBtn.disabled = !["playing", "paused"].includes(mode);
+      el.pauseBtn.textContent = mode === "paused" ? "▶" : "Ⅱ";
+      el.pauseBtn.title = mode === "paused" ? "계속하기" : "일시정지";
+    }
+
+    function formatScore() {
+      if (state.mode === "menu") return "0";
+      return `${state.stageScore}/${currentStage().target}`;
+    }
+
+    function updateHud() {
+      const stage = currentStage();
+      el.stageMetric.textContent = state.mode === "menu" ? "-" : `${state.stageIndex + 1}/10`;
+      el.scoreMetric.textContent = formatScore();
+      el.timeMetric.textContent = state.mode === "menu" ? "30.0" : state.timeLeft.toFixed(1);
+      el.comboMetric.textContent = `x${Math.max(1, comboMultiplier())}`;
+      el.subtitle.textContent = state.mode === "menu"
+        ? `최고 기록 ${state.highScore.toLocaleString()}점`
+        : `${state.hero.name} 선택됨 · 총점 ${state.score.toLocaleString()}점`;
+      el.stageLabel.textContent = state.mode === "menu"
+        ? "진짜 시간 도둑은 점수를 주고, 회색 가짜 도둑은 시간을 빼앗습니다. 노란 시계는 남은 시간을 회복합니다."
+        : `${stage.name}: ${stage.note}`;
+      el.rush.classList.toggle("on", state.mode === "playing" && stage.rush && state.timeLeft <= 10);
+    }
+
+    function comboMultiplier() {
+      if (state.combo >= 12) return 4;
+      if (state.combo >= 7) return 3;
+      if (state.combo >= 3) return 2;
+      return 1;
+    }
+
+    function comboWindow() {
+      return BASE_COMBO_WINDOW + state.hero.comboWindow;
+    }
+
+    function resetCombo() {
+      state.combo = 0;
+      state.lastHitAt = 0;
+    }
+
+    function clearArena() {
+      for (const target of state.active.values()) {
+        window.clearInterval(target.moveTimer);
+        window.clearTimeout(target.warpTimer);
+        target.node.remove();
+      }
+      state.active.clear();
+      el.arena.querySelectorAll(".float,.blocker").forEach((node) => node.remove());
+    }
+
+    function showScreen(html) {
+      el.screen.innerHTML = html;
+      el.screen.classList.remove("hidden");
+    }
+
+    function hideScreen() {
+      el.screen.classList.add("hidden");
+      el.screen.innerHTML = "";
+    }
+
+    function showToast(message) {
+      el.toast.textContent = message;
+      el.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => el.toast.classList.remove("show"), 1300);
+    }
+
+    function renderMenu() {
+      setMode("menu");
+      clearArena();
+      updateHud();
+      showScreen(`
+        <div class="dialog">
+          <h1>시간 도둑 잡기</h1>
+          <p>제한 시간 안에 진짜 도둑을 잡고, 가짜 미끼와 알림을 피해 10개 스테이지를 클리어하세요.</p>
+          <div class="hero-grid">
+            ${HEROES.map((hero, index) => `
+              <button class="hero-card ${hero.id === state.hero.id ? "selected" : ""}" data-hero="${hero.id}">
+                <img src="${hero.asset}" alt="${hero.name}">
+                <strong>${hero.name} · ${hero.title}</strong>
+                <span>${hero.bonus}</span>
+              </button>
+            `).join("")}
+          </div>
+          <div class="dialog-row">
+            <p>최고 기록: <strong>${state.highScore.toLocaleString()}점</strong></p>
+            <button class="primary" id="startBtn">게임 시작</button>
+          </div>
+        </div>
+      `);
+      el.screen.querySelectorAll("[data-hero]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.hero = HEROES.find((hero) => hero.id === button.dataset.hero) || HEROES[0];
+          renderMenu();
+        });
+      });
+      el.screen.querySelector("#startBtn").addEventListener("click", startRun);
+    }
+
+    function startRun() {
+      state.runSeed = Math.floor(Date.now() % 2147483647);
+      state.rng = mulberry32(state.runSeed);
+      state.stageIndex = 0;
+      state.score = 0;
+      startStage(0);
+    }
+
+    function startStage(index) {
+      state.stageIndex = index;
+      state.stageScore = 0;
+      state.timeLeft = STAGE_SECONDS;
+      state.targetSerial = 0;
+      state.nextSpawnAt = now() + 360;
+      state.nextBlockerAt = now() + randomBetween(1900, 3300);
+      resetCombo();
+      clearArena();
+      hideScreen();
+      setMode("playing");
+      updateHud();
+      showToast(`Stage ${index + 1}. ${currentStage().name}`);
+      state.lastTick = now();
+      cancelAnimationFrame(state.raf);
+      state.raf = requestAnimationFrame(loop);
+    }
+
+    function finishStage() {
+      setMode("stage-clear");
+      clearArena();
+      const isFinal = state.stageIndex === STAGES.length - 1;
+      if (isFinal) {
+        finishGame();
+        return;
+      }
+      updateHud();
+      showScreen(`
+        <div class="dialog">
+          <h2>${currentStage().name} 클리어</h2>
+          <p>${state.hero.name}의 총점은 ${state.score.toLocaleString()}점입니다. 다음 스테이지는 ${STAGES[state.stageIndex + 1].name}입니다.</p>
+          ${stageProgressHtml()}
+          <div class="dialog-row" style="margin-top:18px">
+            <button class="ghost" id="menuBtn">처음으로</button>
+            <button class="primary" id="nextBtn">다음 스테이지</button>
+          </div>
+        </div>
+      `);
+      el.screen.querySelector("#nextBtn").addEventListener("click", () => startStage(state.stageIndex + 1));
+      el.screen.querySelector("#menuBtn").addEventListener("click", renderMenu);
+    }
+
+    function finishGame() {
+      setMode("victory");
+      state.highScore = Math.max(state.highScore, state.score);
+      localStorage.setItem(HIGH_KEY, String(state.highScore));
+      updateHud();
+      showScreen(`
+        <div class="dialog">
+          <h2>모든 시간을 되찾았습니다</h2>
+          <p>${state.hero.name}와 함께 10스테이지를 클리어했습니다. 최종 점수는 <strong>${state.score.toLocaleString()}점</strong>, 최고 기록은 <strong>${state.highScore.toLocaleString()}점</strong>입니다.</p>
+          ${stageProgressHtml(true)}
+          <div class="dialog-row" style="margin-top:18px">
+            <button class="ghost" id="menuBtn">캐릭터 선택</button>
+            <button class="primary" id="againBtn">다시 도전</button>
+          </div>
+        </div>
+      `);
+      el.screen.querySelector("#againBtn").addEventListener("click", startRun);
+      el.screen.querySelector("#menuBtn").addEventListener("click", renderMenu);
+    }
+
+    function gameOver(reason) {
+      setMode("game-over");
+      clearArena();
+      state.highScore = Math.max(state.highScore, state.score);
+      localStorage.setItem(HIGH_KEY, String(state.highScore));
+      updateHud();
+      showScreen(`
+        <div class="dialog">
+          <h2>게임 오버</h2>
+          <p>${reason} ${state.stageIndex + 1}스테이지 목표 ${currentStage().target}점 중 ${state.stageScore}점을 회수했습니다.</p>
+          <p>총점 ${state.score.toLocaleString()}점 · 최고 기록 ${state.highScore.toLocaleString()}점</p>
+          ${stageProgressHtml()}
+          <div class="dialog-row" style="margin-top:18px">
+            <button class="ghost" id="menuBtn">캐릭터 선택</button>
+            <button class="primary" id="againBtn">다시 시작</button>
+          </div>
+        </div>
+      `);
+      el.screen.querySelector("#againBtn").addEventListener("click", startRun);
+      el.screen.querySelector("#menuBtn").addEventListener("click", renderMenu);
+    }
+
+    function stageProgressHtml(forceAllDone) {
+      return `
+        <div class="stage-list">
+          ${STAGES.map((stage, index) => {
+            const done = forceAllDone || index < state.stageIndex || (state.mode === "stage-clear" && index === state.stageIndex);
+            const active = !done && index === state.stageIndex;
+            return `<div class="stage-pill ${done ? "done" : ""} ${active ? "active" : ""}">${index + 1}. ${stage.name}</div>`;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function loop(timestamp) {
+      if (state.mode !== "playing") return;
+      const dt = Math.min(64, timestamp - state.lastTick);
+      state.lastTick = timestamp;
+      tick(dt, timestamp);
+      state.raf = requestAnimationFrame(loop);
+    }
+
+    function tick(dt, timestamp) {
+      const stage = currentStage();
+      const drain = stage.rush && state.timeLeft <= 10 ? 1.55 : 1;
+      state.timeLeft = Math.max(0, state.timeLeft - (dt / 1000) * drain);
+
+      if (state.combo && timestamp - state.lastHitAt > comboWindow()) {
+        resetCombo();
+      }
+
+      if (timestamp >= state.nextSpawnAt) {
+        spawnTarget();
+        const pressure = clamp((STAGE_SECONDS - state.timeLeft) / STAGE_SECONDS, 0, 1);
+        state.nextSpawnAt = timestamp + stage.spawn * randomBetween(0.78, 1.24) * (1 - pressure * 0.13);
+      }
+
+      if (stage.blockers && timestamp >= state.nextBlockerAt) {
+        spawnBlocker();
+        state.nextBlockerAt = timestamp + randomBetween(3600, 5600);
+      }
+
+      for (const target of [...state.active.values()]) {
+        if (timestamp >= target.expiresAt) {
+          missTarget(target.id, false);
+        }
+      }
+
+      updateHud();
+
+      if (state.stageScore >= stage.target) {
+        finishStage();
+      } else if (state.timeLeft <= 0) {
+        gameOver("시간 도둑을 놓쳤습니다.");
+      }
+    }
+
+    function pickTargetKind(stage) {
+      const roll = state.rng();
+      if (stage.clock && roll < stage.clock) return "clock";
+      if (stage.fake && roll < stage.clock + stage.fake) return "fake";
+      return "thief";
+    }
+
+    function spawnTarget() {
+      const stage = currentStage();
+      const bounds = el.arena.getBoundingClientRect();
+      const kind = pickTargetKind(stage);
+      const size = Math.round(clamp(randomBetween(62, 86) - state.stageIndex * 1.3, 50, 88));
+      const margin = size * 0.7;
+      const x = randomBetween(margin, Math.max(margin, bounds.width - margin));
+      const y = randomBetween(margin + 10, Math.max(margin + 10, bounds.height - margin - 24));
+      const id = `target-${state.stageIndex}-${state.targetSerial++}`;
+      const node = document.createElement("button");
+      const moving = kind !== "clock" && state.rng() < stage.move;
+      const warping = kind === "thief" && state.rng() < stage.warp;
+      node.className = `target ${kind} ${moving ? "moving" : ""} ${warping ? "warping" : ""}`;
+      node.type = "button";
+      node.setAttribute("aria-label", kind === "clock" ? "시계 아이템" : kind === "fake" ? "가짜 시간 도둑" : "시간 도둑");
+      node.style.setProperty("--size", `${size}px`);
+      node.style.setProperty("--x", `${x}px`);
+      node.style.setProperty("--y", `${y}px`);
+      node.style.setProperty("--wiggle", `${Math.round(randomBetween(620, 980))}ms`);
+      if (kind !== "clock") {
+        const img = document.createElement("img");
+        img.src = ASSETS.thief;
+        img.alt = "";
+        node.appendChild(img);
+      }
+      el.arena.appendChild(node);
+
+      const target = {
+        id,
+        node,
+        kind,
+        size,
+        x,
+        y,
+        expiresAt: now() + stage.life * randomBetween(0.86, 1.18),
+        moveTimer: 0,
+        warpTimer: 0
+      };
+      state.active.set(id, target);
+      node.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        hitTarget(id);
+      }, { passive: false });
+
+      if (moving) {
+        target.moveTimer = window.setInterval(() => relocateTarget(target, 0.9), 620);
+      }
+      if (warping) {
+        target.warpTimer = window.setTimeout(() => relocateTarget(target, 0.25), Math.max(220, stage.life - 360));
+      }
+    }
+
+    function relocateTarget(target, motionScale) {
+      if (!state.active.has(target.id) || state.mode !== "playing") return;
+      const bounds = el.arena.getBoundingClientRect();
+      const margin = target.size * 0.7;
+      const dx = randomBetween(-150, 150) * motionScale;
+      const dy = randomBetween(-120, 120) * motionScale;
+      target.x = clamp(target.x + dx, margin, Math.max(margin, bounds.width - margin));
+      target.y = clamp(target.y + dy, margin + 12, Math.max(margin + 12, bounds.height - margin - 24));
+      target.node.style.setProperty("--x", `${target.x}px`);
+      target.node.style.setProperty("--y", `${target.y}px`);
+    }
+
+    function hitTarget(id) {
+      const target = state.active.get(id);
+      if (!target || state.mode !== "playing") return;
+      const x = target.x;
+      const y = target.y;
+      removeTarget(target, true);
+
+      if (target.kind === "clock") {
+        const gained = 3 + state.hero.clockBoost;
+        state.timeLeft = Math.min(STAGE_SECONDS + 5, state.timeLeft + gained);
+        showFloat(`+${gained.toFixed(0)}초`, x, y, "var(--ok)");
+        showToast("시계를 회수했습니다.");
+        return;
+      }
+
+      if (target.kind === "fake") {
+        state.timeLeft = Math.max(0, state.timeLeft - 3);
+        resetCombo();
+        showFloat("-3초", x, y, "var(--bad)");
+        showToast("가짜 도둑입니다.");
+        return;
+      }
+
+      const t = now();
+      state.combo = t - state.lastHitAt <= comboWindow() ? state.combo + 1 : 1;
+      state.lastHitAt = t;
+      const gained = Math.round(HIT_SCORE * comboMultiplier() * state.hero.scoreBoost);
+      state.stageScore += gained;
+      state.score += gained;
+      showFloat(`+${gained}`, x, y, "var(--blue)");
+      if (state.combo >= 3) showToast(`${state.combo} 콤보`);
+    }
+
+    function missTarget(id, penalize) {
+      const target = state.active.get(id);
+      if (!target) return;
+      removeTarget(target, false);
+      if (penalize && target.kind === "thief") {
+        state.timeLeft = Math.max(0, state.timeLeft - 1);
+        resetCombo();
+      }
+    }
+
+    function removeTarget(target, clicked) {
+      window.clearInterval(target.moveTimer);
+      window.clearTimeout(target.warpTimer);
+      state.active.delete(target.id);
+      target.node.classList.add("despawn");
+      window.setTimeout(() => target.node.remove(), clicked ? 120 : 180);
+    }
+
+    function showFloat(text, x, y, color) {
+      const node = document.createElement("div");
+      node.className = "float";
+      node.textContent = text;
+      node.style.setProperty("--x", `${x}px`);
+      node.style.setProperty("--y", `${y}px`);
+      node.style.setProperty("--color", color);
+      el.arena.appendChild(node);
+      window.setTimeout(() => node.remove(), 780);
+    }
+
+    function spawnBlocker() {
+      const bounds = el.arena.getBoundingClientRect();
+      const node = document.createElement("div");
+      node.className = "blocker";
+      node.innerHTML = `긴급 알림<span>시야가 잠깐 가려집니다</span>`;
+      node.style.left = `${randomBetween(12, Math.max(12, bounds.width - 310))}px`;
+      node.style.top = `${randomBetween(18, Math.max(18, bounds.height - 150))}px`;
+      el.arena.appendChild(node);
+      window.setTimeout(() => node.remove(), randomBetween(900, 1350));
+    }
+
+    function registerEmptyMiss(event) {
+      if (state.mode !== "playing") return;
+      if (event.target.closest(".target") || event.target.closest(".screen")) return;
+      const bounds = el.arena.getBoundingClientRect();
+      const x = clamp(event.clientX - bounds.left, 24, bounds.width - 24);
+      const y = clamp(event.clientY - bounds.top, 24, bounds.height - 24);
+      state.timeLeft = Math.max(0, state.timeLeft - 1);
+      resetCombo();
+      showFloat("MISS -1초", x, y, "var(--bad)");
+    }
+
+    function togglePause() {
+      if (state.mode === "playing") {
+        setMode("paused");
+        showScreen(`
+          <div class="dialog">
+            <h2>일시정지</h2>
+            <p>${currentStage().name} 진행 중입니다. 남은 시간 ${state.timeLeft.toFixed(1)}초, 현재 스테이지 점수 ${state.stageScore}점입니다.</p>
+            <div class="dialog-row" style="margin-top:18px">
+              <button class="ghost" id="menuBtn">처음으로</button>
+              <button class="primary" id="resumeBtn">계속하기</button>
+            </div>
+          </div>
+        `);
+        el.screen.querySelector("#resumeBtn").addEventListener("click", resumeGame);
+        el.screen.querySelector("#menuBtn").addEventListener("click", renderMenu);
+      } else if (state.mode === "paused") {
+        resumeGame();
+      }
+    }
+
+    function resumeGame() {
+      hideScreen();
+      setMode("playing");
+      const resumeAt = now();
+      state.lastTick = resumeAt;
+      state.nextSpawnAt = resumeAt + 220;
+      state.nextBlockerAt = resumeAt + randomBetween(1400, 2400);
+      for (const target of state.active.values()) {
+        target.expiresAt = resumeAt + 650;
+      }
+      state.raf = requestAnimationFrame(loop);
+    }
+
+    el.pauseBtn.addEventListener("click", togglePause);
+    el.restartBtn.addEventListener("click", () => {
+      if (state.mode === "menu") {
+        renderMenu();
+      } else {
+        startRun();
+      }
+    });
+    el.arena.addEventListener("pointerdown", registerEmptyMiss);
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" || event.key.toLowerCase() === "p") {
+        togglePause();
+      }
+      if (event.key.toLowerCase() === "r" && state.mode !== "menu") {
+        startRun();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      for (const target of state.active.values()) relocateTarget(target, 0);
+    });
+
+    renderMenu();
+  </script>
+</body>
+</html>

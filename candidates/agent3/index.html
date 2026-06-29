@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시간 도둑 잡기 - Agent 3</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2430;
+      --muted: #626b7c;
+      --paper: #fffdf8;
+      --panel: rgba(255, 255, 255, 0.88);
+      --line: rgba(35, 38, 52, 0.14);
+      --blue: #307ee8;
+      --mint: #2fae8f;
+      --rose: #e84968;
+      --gold: #d59117;
+      --violet: #7658db;
+      --shadow: 0 16px 38px rgba(32, 36, 48, 0.16);
+      --radius: 8px;
+      font-family: ui-rounded, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at top left, rgba(255, 222, 114, 0.38), transparent 28rem),
+        linear-gradient(135deg, #eef8ff 0%, #fff8e5 48%, #f5fff8 100%);
+      color: var(--ink);
+    }
+
+    button {
+      border: 0;
+      border-radius: var(--radius);
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:focus-visible {
+      outline: 3px solid rgba(48, 126, 232, 0.55);
+      outline-offset: 3px;
+    }
+
+    .app {
+      width: min(1180px, 100vw);
+      height: min(760px, 100dvh);
+      min-height: 560px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: minmax(170px, 1fr) 1.3fr minmax(170px, 1fr);
+      gap: 10px;
+      align-items: stretch;
+      min-height: 94px;
+    }
+
+    .hud-block {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: 0 8px 26px rgba(55, 68, 86, 0.09);
+      backdrop-filter: blur(12px);
+      min-width: 0;
+    }
+
+    .hero-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .hero-chip img {
+      width: 58px;
+      height: 58px;
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px var(--line);
+      background: #fff;
+      flex: 0 0 auto;
+    }
+
+    .label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .value {
+      display: block;
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      font-weight: 900;
+      line-height: 1.1;
+      min-width: 0;
+    }
+
+    .stage-title {
+      min-width: 0;
+    }
+
+    .stage-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meter-wrap {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .meter-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-weight: 850;
+      font-size: 0.86rem;
+      color: var(--muted);
+    }
+
+    .meter {
+      height: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(31, 36, 48, 0.12);
+      border-radius: 999px;
+      background: #f1f4f7;
+    }
+
+    .meter > span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--mint), var(--blue), var(--gold));
+      transition: width 180ms ease;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+
+    .stat {
+      min-width: 0;
+      padding: 8px 9px;
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(31, 36, 48, 0.08);
+      text-align: center;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: clamp(1rem, 2.3vw, 1.45rem);
+      line-height: 1.05;
+      font-variant-numeric: tabular-nums;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .arena-shell {
+      position: relative;
+      min-height: 0;
+      border: 1px solid rgba(31, 36, 48, 0.15);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(255,255,255,0.56), rgba(255,255,255,0.24)),
+        repeating-linear-gradient(0deg, rgba(48, 126, 232, 0.08) 0 1px, transparent 1px 58px),
+        repeating-linear-gradient(90deg, rgba(47, 174, 143, 0.08) 0 1px, transparent 1px 58px),
+        #fffdf5;
+      box-shadow: var(--shadow);
+      isolation: isolate;
+    }
+
+    .arena {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .desk {
+      position: absolute;
+      inset-inline: 4%;
+      bottom: 2.5%;
+      height: 21%;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, rgba(255, 225, 145, 0.8), rgba(220, 173, 87, 0.8));
+      border: 1px solid rgba(111, 80, 27, 0.16);
+      z-index: -1;
+    }
+
+    .target {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: var(--size);
+      height: var(--size);
+      padding: 0;
+      background: transparent;
+      border-radius: 50%;
+      transform: translate(-50%, -50%) scale(0.2);
+      animation: popIn 150ms cubic-bezier(.17,.87,.32,1.36) forwards;
+      will-change: transform, left, top;
+    }
+
+    .target img,
+    .target .clock {
+      width: 100%;
+      height: 100%;
+      border-radius: 24%;
+      filter: drop-shadow(0 12px 12px rgba(31, 36, 48, 0.18));
+      pointer-events: none;
+    }
+
+    .target.fake img {
+      filter: hue-rotate(135deg) saturate(0.8) drop-shadow(0 12px 12px rgba(31, 36, 48, 0.16));
+      opacity: 0.82;
+    }
+
+    .target.fake::after {
+      content: "!";
+      position: absolute;
+      right: 4%;
+      top: 7%;
+      display: grid;
+      place-items: center;
+      width: 30%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: var(--rose);
+      color: white;
+      font-weight: 950;
+      font-size: clamp(0.8rem, 2vw, 1.2rem);
+      box-shadow: 0 4px 10px rgba(232, 73, 104, 0.32);
+    }
+
+    .clock {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle, #fff7cf 0 42%, #ffd95f 43% 67%, #e9a722 68% 100%);
+      border: 5px solid #8b5b12;
+    }
+
+    .clock::before {
+      content: "";
+      width: 42%;
+      height: 42%;
+      border-left: 5px solid #1f2430;
+      border-bottom: 5px solid #1f2430;
+      transform: translate(18%, -8%) rotate(-45deg);
+      border-radius: 0 0 0 4px;
+    }
+
+    .target.moving {
+      transition: left 700ms ease-in-out, top 700ms ease-in-out;
+    }
+
+    .target.hit {
+      animation: hit 250ms ease-out forwards;
+    }
+
+    .target.miss {
+      animation: miss 260ms ease-out forwards;
+    }
+
+    .float {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      transform: translate(-50%, -50%);
+      z-index: 6;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ink);
+      box-shadow: 0 8px 18px rgba(31, 36, 48, 0.16);
+      font-weight: 950;
+      pointer-events: none;
+      animation: floatUp 780ms ease-out forwards;
+    }
+
+    .blocker {
+      position: absolute;
+      z-index: 4;
+      display: grid;
+      place-items: center;
+      width: min(38%, 300px);
+      min-width: 190px;
+      height: 92px;
+      border: 1px solid rgba(232, 73, 104, 0.24);
+      border-radius: var(--radius);
+      background: rgba(255, 244, 248, 0.94);
+      box-shadow: 0 14px 28px rgba(92, 36, 49, 0.18);
+      color: #7c1830;
+      font-weight: 950;
+      text-align: center;
+      animation: alertSlide 1100ms ease-in-out forwards;
+      pointer-events: none;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 16px;
+      z-index: 7;
+      transform: translateX(-50%);
+      max-width: min(92%, 620px);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      background: rgba(31, 36, 48, 0.88);
+      color: white;
+      font-weight: 850;
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(31, 36, 48, 0.22);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      animation: toast 1700ms ease forwards;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      background: rgba(250, 253, 255, 0.75);
+      backdrop-filter: blur(10px);
+    }
+
+    .screen {
+      width: min(820px, 100%);
+      max-height: 100%;
+      overflow: auto;
+      padding: clamp(16px, 3.2vw, 26px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .screen h1,
+    .screen h2 {
+      margin: 0;
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .screen h1 {
+      font-size: clamp(2.1rem, 6vw, 4.9rem);
+      max-width: 9ch;
+    }
+
+    .screen h2 {
+      font-size: clamp(1.7rem, 4vw, 3rem);
+    }
+
+    .lead {
+      margin: 12px 0 18px;
+      color: var(--muted);
+      font-size: clamp(0.95rem, 2vw, 1.08rem);
+      line-height: 1.55;
+    }
+
+    .start-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .mascot {
+      width: min(290px, 74vw);
+      justify-self: center;
+      animation: bob 1800ms ease-in-out infinite;
+      filter: drop-shadow(0 18px 20px rgba(44, 39, 72, 0.18));
+    }
+
+    .heroes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .hero-card {
+      position: relative;
+      display: grid;
+      gap: 7px;
+      padding: 10px;
+      border: 2px solid transparent;
+      background: #f7fafc;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .hero-card[aria-pressed="true"] {
+      border-color: var(--blue);
+      background: #eef7ff;
+      box-shadow: 0 10px 22px rgba(48, 126, 232, 0.16);
+    }
+
+    .hero-card img {
+      width: 100%;
+      max-width: 110px;
+      aspect-ratio: 1;
+      justify-self: center;
+      border-radius: var(--radius);
+      background: white;
+    }
+
+    .hero-card b,
+    .hero-card span {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .hero-card span {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.3;
+    }
+
+    .primary,
+    .secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 11px 16px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .primary {
+      background: var(--ink);
+      color: white;
+      box-shadow: 0 10px 20px rgba(31, 36, 48, 0.22);
+    }
+
+    .secondary {
+      background: #edf2f7;
+      color: var(--ink);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .summary .stat {
+      background: #f8fafc;
+      text-align: left;
+      padding: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .shake {
+      animation: shellShake 280ms ease;
+    }
+
+    @keyframes popIn {
+      to { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @keyframes hit {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1.35) rotate(10deg); opacity: 0; }
+    }
+
+    @keyframes miss {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(0.4) rotate(-18deg); opacity: 0; }
+    }
+
+    @keyframes floatUp {
+      from { opacity: 0; transform: translate(-50%, -30%) scale(0.9); }
+      15% { opacity: 1; }
+      to { opacity: 0; transform: translate(-50%, -165%) scale(1.08); }
+    }
+
+    @keyframes alertSlide {
+      0% { opacity: 0; transform: translateY(-16px) scale(0.96); }
+      15%, 80% { opacity: 1; transform: translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateY(18px) scale(0.98); }
+    }
+
+    @keyframes toast {
+      0% { opacity: 0; transform: translate(-50%, -10px); }
+      12%, 82% { opacity: 1; transform: translate(-50%, 0); }
+      100% { opacity: 0; transform: translate(-50%, -10px); }
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0) rotate(-1deg); }
+      50% { transform: translateY(-10px) rotate(1deg); }
+    }
+
+    @keyframes shellShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-3px); }
+    }
+
+    @media (max-width: 820px) {
+      body {
+        overflow: auto;
+      }
+
+      .app {
+        height: 100dvh;
+        min-height: 620px;
+        padding: 10px;
+        gap: 8px;
+      }
+
+      .topbar {
+        grid-template-columns: 1fr;
+        min-height: 0;
+      }
+
+      .hud-block {
+        padding: 8px;
+      }
+
+      .hero-chip img {
+        width: 44px;
+        height: 44px;
+      }
+
+      .stat-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .stat-grid .stat:last-child {
+        grid-column: span 1;
+      }
+
+      .label {
+        font-size: 0.68rem;
+      }
+
+      .start-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .screen h1 {
+        max-width: none;
+      }
+
+      .mascot {
+        width: min(190px, 54vw);
+      }
+
+      .heroes {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        grid-template-columns: 58px 1fr;
+        align-items: center;
+      }
+
+      .hero-card img {
+        width: 58px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .app {
+        min-height: 600px;
+        padding: 7px;
+      }
+
+      .stat-grid {
+        gap: 5px;
+      }
+
+      .stat {
+        padding: 7px 5px;
+      }
+
+      .arena-shell {
+        min-height: 285px;
+      }
+
+      .screen {
+        padding: 14px;
+      }
+
+      .primary,
+      .secondary {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 1ms !important;
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="시간 도둑 잡기 게임">
+    <section class="topbar" aria-label="게임 상태">
+      <div class="hud-block">
+        <div class="hero-chip">
+          <img id="hudHeroImg" src="../../assets/hero-ruru.svg" alt="선택한 주인공">
+          <div class="stage-title">
+            <span class="label">스테이지</span>
+            <strong class="value stage-name" id="stageName">1. 느긋한 오후</strong>
+          </div>
+        </div>
+      </div>
+      <div class="hud-block">
+        <div class="meter-wrap">
+          <div class="meter-row">
+            <span id="goalText">목표 100</span>
+            <span id="stageScoreText">0 / 100</span>
+          </div>
+          <div class="meter" aria-hidden="true"><span id="goalMeter"></span></div>
+        </div>
+      </div>
+      <div class="hud-block">
+        <div class="stat-grid">
+          <div class="stat"><span class="label">시간</span><strong id="timeText">30.0</strong></div>
+          <div class="stat"><span class="label">점수</span><strong id="scoreText">0</strong></div>
+          <div class="stat"><span class="label">콤보</span><strong id="comboText">0</strong></div>
+          <div class="stat"><span class="label">최고</span><strong id="bestText">0</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="arena-shell" id="arenaShell">
+      <div class="arena" id="arena" aria-label="플레이 영역">
+        <div class="desk" aria-hidden="true"></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </div>
+
+      <div class="overlay" id="startOverlay">
+        <div class="screen">
+          <div class="start-layout">
+            <img class="mascot" src="../../assets/time-thief.svg" alt="시간 도둑 틱">
+            <div>
+              <h1>시간 도둑 잡기</h1>
+              <p class="lead">10개의 짧은 스테이지에서 진짜 틱을 잡고, 시계 아이템으로 시간을 되찾으세요. 가짜 도둑은 남은 시간을 훔쳐 갑니다.</p>
+              <div class="heroes" role="group" aria-label="주인공 선택">
+                <button class="hero-card" type="button" data-hero="ruru" aria-pressed="true">
+                  <img src="../../assets/hero-ruru.svg" alt="">
+                  <span><b>루루</b><span>도둑 점수 +10%</span></span>
+                </button>
+                <button class="hero-card" type="button" data-hero="momo" aria-pressed="false">
+                  <img src="../../assets/hero-momo.svg" alt="">
+                  <span><b>모모</b><span>콤보 유지 +1초</span></span>
+                </button>
+                <button class="hero-card" type="button" data-hero="bori" aria-pressed="false">
+                  <img src="../../assets/hero-bori.svg" alt="">
+                  <span><b>보리</b><span>시계 회복 +1초</span></span>
+                </button>
+              </div>
+              <div class="actions">
+                <button class="primary" id="startBtn" type="button">게임 시작</button>
+                <button class="secondary" id="howBtn" type="button">규칙 보기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overlay hidden" id="resultOverlay">
+        <div class="screen">
+          <h2 id="resultTitle">게임 오버</h2>
+          <p class="lead" id="resultText">시간이 모두 사라졌습니다.</p>
+          <div class="summary">
+            <div class="stat"><span class="label">최종 점수</span><strong id="finalScore">0</strong></div>
+            <div class="stat"><span class="label">도달 스테이지</span><strong id="finalStage">1</strong></div>
+            <div class="stat"><span class="label">최고 기록</span><strong id="finalBest">0</strong></div>
+          </div>
+          <div class="actions">
+            <button class="primary" id="retryBtn" type="button">다시 도전</button>
+            <button class="secondary" id="changeHeroBtn" type="button">주인공 변경</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STAGES = [
+      { name: "느긋한 오후", goal: 100, thiefLife: 1300, fake: 0, clocks: 0, blocker: false, move: false, warp: false, drain: false },
+      { name: "사라진 5분", goal: 150, thiefLife: 1120, fake: 0, clocks: 0, blocker: false, move: false, warp: false, drain: false },
+      { name: "책상 밑 소동", goal: 220, thiefLife: 1050, fake: 0.22, clocks: 0, blocker: false, move: false, warp: false, drain: false },
+      { name: "알림 폭풍", goal: 300, thiefLife: 990, fake: 0.24, clocks: 0, blocker: true, move: false, warp: false, drain: false },
+      { name: "커피 브레이크", goal: 400, thiefLife: 930, fake: 0.25, clocks: 0.16, blocker: true, move: false, warp: false, drain: false },
+      { name: "퇴근 전쟁", goal: 520, thiefLife: 880, fake: 0.27, clocks: 0.16, blocker: true, move: true, warp: false, drain: false },
+      { name: "집중력 테스트", goal: 660, thiefLife: 830, fake: 0.36, clocks: 0.15, blocker: true, move: true, warp: false, drain: false },
+      { name: "시간 왜곡", goal: 820, thiefLife: 780, fake: 0.37, clocks: 0.15, blocker: true, move: true, warp: true, drain: false },
+      { name: "마지막 10분", goal: 1000, thiefLife: 730, fake: 0.39, clocks: 0.13, blocker: true, move: true, warp: true, drain: true },
+      { name: "시간 도둑의 본거지", goal: 1250, thiefLife: 680, fake: 0.42, clocks: 0.13, blocker: true, move: true, warp: true, drain: true }
+    ];
+
+    const HEROES = {
+      ruru: { name: "루루", img: "../../assets/hero-ruru.svg", score: 1.1, comboWindow: 1800, clockBonus: 0 },
+      momo: { name: "모모", img: "../../assets/hero-momo.svg", score: 1, comboWindow: 2800, clockBonus: 0 },
+      bori: { name: "보리", img: "../../assets/hero-bori.svg", score: 1, comboWindow: 1800, clockBonus: 1 }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const arena = $("arena");
+    const arenaShell = $("arenaShell");
+    const toast = $("toast");
+    const startOverlay = $("startOverlay");
+    const resultOverlay = $("resultOverlay");
+    const bestKey = "agent3-time-thief-best-v1";
+    const state = {
+      hero: "ruru",
+      stage: 0,
+      score: 0,
+      stageScore: 0,
+      time: 30,
+      combo: 0,
+      lastHitAt: 0,
+      running: false,
+      transitioning: false,
+      timerId: 0,
+      spawnId: 0,
+      blockerId: 0,
+      best: Number(localStorage.getItem(bestKey) || 0)
+    };
+
+    $("bestText").textContent = state.best;
+
+    document.querySelectorAll(".hero-card").forEach((button) => {
+      button.addEventListener("click", () => selectHero(button.dataset.hero));
+    });
+
+    $("startBtn").addEventListener("click", startGame);
+    $("retryBtn").addEventListener("click", startGame);
+    $("changeHeroBtn").addEventListener("click", () => {
+      resultOverlay.classList.add("hidden");
+      startOverlay.classList.remove("hidden");
+    });
+    $("howBtn").addEventListener("click", () => {
+      showToast("진짜 틱은 점수, 시계는 시간 회복, 느낌표 가짜는 시간 -3초입니다.");
+    });
+
+    arena.addEventListener("pointerdown", (event) => {
+      if (!state.running || event.target.closest(".target")) return;
+      state.combo = 0;
+      state.time = Math.max(0, state.time - 0.6);
+      arenaShell.classList.remove("shake");
+      void arenaShell.offsetWidth;
+      arenaShell.classList.add("shake");
+      showFloat(event.clientX, event.clientY, "-0.6초", "bad");
+      updateHud();
+    });
+
+    function selectHero(id) {
+      state.hero = id;
+      document.querySelectorAll(".hero-card").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.hero === id));
+      });
+      $("hudHeroImg").src = HEROES[id].img;
+    }
+
+    function startGame() {
+      clearLoops();
+      clearArena();
+      Object.assign(state, {
+        stage: 0,
+        score: 0,
+        stageScore: 0,
+        time: 30,
+        combo: 0,
+        lastHitAt: 0,
+        running: true,
+        transitioning: false
+      });
+      startOverlay.classList.add("hidden");
+      resultOverlay.classList.add("hidden");
+      beginStage(0);
+    }
+
+    function beginStage(index) {
+      clearLoops();
+      clearArena();
+      state.stage = index;
+      state.stageScore = 0;
+      state.time = 30;
+      state.combo = 0;
+      state.lastHitAt = 0;
+      state.transitioning = false;
+      updateHud();
+      showToast(`${index + 1}단계: ${STAGES[index].name}`);
+      state.timerId = setInterval(tick, 100);
+      scheduleSpawn(450);
+      if (STAGES[index].blocker) {
+        state.blockerId = setInterval(spawnBlocker, 3600 - Math.min(index * 180, 1200));
+      }
+    }
+
+    function tick() {
+      if (!state.running) return;
+      const stage = STAGES[state.stage];
+      const drain = stage.drain && state.time < 11 ? 0.16 : 0.1;
+      state.time = Math.max(0, state.time - drain);
+      if (Date.now() - state.lastHitAt > HEROES[state.hero].comboWindow) {
+        state.combo = 0;
+      }
+      updateHud();
+      if (state.time <= 0) endGame(false);
+    }
+
+    function scheduleSpawn(delay) {
+      clearTimeout(state.spawnId);
+      if (!state.running) return;
+      state.spawnId = setTimeout(() => {
+        spawnTarget();
+        const base = Math.max(310, 780 - state.stage * 42);
+        scheduleSpawn(base + Math.random() * 260);
+      }, delay);
+    }
+
+    function spawnTarget() {
+      const stage = STAGES[state.stage];
+      const roll = Math.random();
+      const type = roll < stage.clocks ? "clock" : roll < stage.clocks + stage.fake ? "fake" : "thief";
+      const target = document.createElement("button");
+      const size = Math.max(54, 88 - state.stage * 2.5);
+      const pos = randomPosition(size);
+      target.type = "button";
+      target.className = `target ${type}`;
+      target.style.setProperty("--size", `${size}px`);
+      target.style.left = `${pos.x}px`;
+      target.style.top = `${pos.y}px`;
+      target.setAttribute("aria-label", type === "clock" ? "시계 아이템 잡기" : type === "fake" ? "가짜 도둑 피하기" : "시간 도둑 틱 잡기");
+      if (type === "clock") {
+        target.innerHTML = '<span class="clock" aria-hidden="true"></span>';
+      } else {
+        target.innerHTML = '<img src="../../assets/time-thief.svg" alt="">';
+      }
+      arena.appendChild(target);
+
+      let alive = true;
+      const vanish = setTimeout(() => {
+        if (!alive) return;
+        alive = false;
+        target.classList.add("miss");
+        setTimeout(() => target.remove(), 260);
+        if (type === "thief") {
+          state.combo = 0;
+          showFloat(pos.x, pos.y, "놓침", "bad", true);
+          updateHud();
+        }
+      }, type === "clock" ? 1150 : stage.thiefLife);
+
+      if (stage.move && type !== "clock") {
+        target.classList.add("moving");
+        setTimeout(() => moveTarget(target, size), 120);
+        setTimeout(() => moveTarget(target, size), 650);
+      }
+      if (stage.warp && type === "thief" && Math.random() < 0.42) {
+        setTimeout(() => {
+          if (alive) {
+            const next = randomPosition(size);
+            target.style.left = `${next.x}px`;
+            target.style.top = `${next.y}px`;
+          }
+        }, Math.max(260, stage.thiefLife - 310));
+      }
+
+      target.addEventListener("pointerdown", (event) => {
+        event.stopPropagation();
+        if (!alive || !state.running || state.transitioning) return;
+        alive = false;
+        clearTimeout(vanish);
+        handleTarget(type, target, event);
+      });
+    }
+
+    function handleTarget(type, target, event) {
+      const rect = arena.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      if (type === "fake") {
+        state.combo = 0;
+        state.time = Math.max(0, state.time - 3);
+        target.classList.add("miss");
+        showFloat(x, y, "-3초", "bad", true);
+        arenaShell.classList.remove("shake");
+        void arenaShell.offsetWidth;
+        arenaShell.classList.add("shake");
+      } else if (type === "clock") {
+        const gain = 3 + HEROES[state.hero].clockBonus;
+        state.time = Math.min(35, state.time + gain);
+        target.classList.add("hit");
+        showFloat(x, y, `+${gain}초`, "good", true);
+      } else {
+        const now = Date.now();
+        state.combo = now - state.lastHitAt <= HEROES[state.hero].comboWindow ? state.combo + 1 : 1;
+        state.lastHitAt = now;
+        const comboBonus = Math.min(36, Math.max(0, state.combo - 1) * 4);
+        const points = Math.round((30 + state.stage * 4 + comboBonus) * HEROES[state.hero].score);
+        state.score += points;
+        state.stageScore += points;
+        target.classList.add("hit");
+        showFloat(x, y, `+${points}`, "good", true);
+        if (state.stageScore >= STAGES[state.stage].goal) {
+          nextStage();
+        }
+      }
+      setTimeout(() => target.remove(), 260);
+      updateBest();
+      updateHud();
+      if (state.time <= 0) endGame(false);
+    }
+
+    function nextStage() {
+      if (!state.running) return;
+      state.transitioning = true;
+      clearLoops();
+      if (state.stage >= STAGES.length - 1) {
+        endGame(true);
+        return;
+      }
+      showToast("목표 달성! 다음 스테이지로 이동합니다.");
+      setTimeout(() => {
+        if (state.running) beginStage(state.stage + 1);
+      }, 900);
+    }
+
+    function endGame(win) {
+      if (!state.running && !win) return;
+      state.running = false;
+      clearLoops();
+      updateBest();
+      $("resultTitle").textContent = win ? "10스테이지 클리어!" : "게임 오버";
+      $("resultText").textContent = win
+        ? "훔쳐간 시간을 모두 되찾았습니다. 최고 기록에 다시 도전해 보세요."
+        : `${state.stage + 1}단계 목표를 채우지 못했습니다. 콤보를 이어가면 더 빨라집니다.`;
+      $("finalScore").textContent = state.score;
+      $("finalStage").textContent = win ? "10" : String(state.stage + 1);
+      $("finalBest").textContent = state.best;
+      resultOverlay.classList.remove("hidden");
+    }
+
+    function randomPosition(size) {
+      const rect = arena.getBoundingClientRect();
+      const pad = size * 0.65;
+      return {
+        x: pad + Math.random() * Math.max(1, rect.width - pad * 2),
+        y: pad + Math.random() * Math.max(1, rect.height - pad * 2.25)
+      };
+    }
+
+    function moveTarget(target, size) {
+      if (!target.isConnected) return;
+      const pos = randomPosition(size);
+      target.style.left = `${pos.x}px`;
+      target.style.top = `${pos.y}px`;
+    }
+
+    function spawnBlocker() {
+      if (!state.running) return;
+      const note = document.createElement("div");
+      const rect = arena.getBoundingClientRect();
+      note.className = "blocker";
+      note.textContent = ["새 알림 17개", "회의 5분 전", "답장 필요!", "집중 모드 해제됨"][Math.floor(Math.random() * 4)];
+      note.style.left = `${20 + Math.random() * Math.max(1, rect.width - 320)}px`;
+      note.style.top = `${40 + Math.random() * Math.max(1, rect.height * 0.58)}px`;
+      arena.appendChild(note);
+      setTimeout(() => note.remove(), 1150);
+    }
+
+    function updateHud() {
+      const stage = STAGES[state.stage];
+      $("stageName").textContent = `${state.stage + 1}. ${stage.name}`;
+      $("goalText").textContent = `목표 ${stage.goal}`;
+      $("stageScoreText").textContent = `${Math.min(state.stageScore, stage.goal)} / ${stage.goal}`;
+      $("goalMeter").style.width = `${Math.min(100, (state.stageScore / stage.goal) * 100)}%`;
+      $("timeText").textContent = state.time.toFixed(1);
+      $("scoreText").textContent = state.score;
+      $("comboText").textContent = state.combo;
+      $("bestText").textContent = state.best;
+    }
+
+    function updateBest() {
+      if (state.score <= state.best) return;
+      state.best = state.score;
+      localStorage.setItem(bestKey, String(state.best));
+    }
+
+    function showFloat(x, y, text, tone, arenaCoords = false) {
+      const rect = arena.getBoundingClientRect();
+      const el = document.createElement("div");
+      el.className = "float";
+      el.textContent = text;
+      el.style.color = tone === "bad" ? "var(--rose)" : "var(--mint)";
+      el.style.setProperty("--x", `${arenaCoords ? x : x - rect.left}px`);
+      el.style.setProperty("--y", `${arenaCoords ? y : y - rect.top}px`);
+      arena.appendChild(el);
+      setTimeout(() => el.remove(), 820);
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove("show");
+      void toast.offsetWidth;
+      toast.classList.add("show");
+    }
+
+    function clearLoops() {
+      clearInterval(state.timerId);
+      clearTimeout(state.spawnId);
+      clearInterval(state.blockerId);
+    }
+
+    function clearArena() {
+      arena.querySelectorAll(".target, .float, .blocker").forEach((node) => node.remove());
+    }
+  </script>
+</body>
+</html>
