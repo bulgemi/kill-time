@@ -1,0 +1,19 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Ruru, the quick tapper</title>
+  <desc id="desc">A cute round hero character with a blue hoodie and a tiny stopwatch.</desc>
+  <rect width="320" height="320" rx="40" fill="#EAF7FF"/>
+  <circle cx="160" cy="160" r="104" fill="#FFFFFF"/>
+  <path d="M91 180C91 126 120 84 160 84C200 84 229 126 229 180C229 226 201 258 160 258C119 258 91 226 91 180Z" fill="#60B7FF"/>
+  <path d="M112 128C122 96 140 78 160 78C180 78 198 96 208 128C194 119 178 114 160 114C142 114 126 119 112 128Z" fill="#8BD0FF"/>
+  <circle cx="137" cy="162" r="10" fill="#24344A"/>
+  <circle cx="183" cy="162" r="10" fill="#24344A"/>
+  <path d="M146 190C154 197 166 197 174 190" stroke="#24344A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="119" cy="183" r="8" fill="#FFB8C7" opacity="0.75"/>
+  <circle cx="201" cy="183" r="8" fill="#FFB8C7" opacity="0.75"/>
+  <path d="M101 205C79 213 66 202 70 184" stroke="#60B7FF" stroke-width="15" stroke-linecap="round"/>
+  <path d="M219 205C241 213 254 202 250 184" stroke="#60B7FF" stroke-width="15" stroke-linecap="round"/>
+  <circle cx="220" cy="222" r="26" fill="#FFE07A"/>
+  <circle cx="220" cy="222" r="18" fill="#FFF8D8"/>
+  <path d="M220 211V223L229 228" stroke="#24344A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M129 249C140 257 149 261 160 261C171 261 180 257 191 249" stroke="#2D88D8" stroke-width="8" stroke-linecap="round"/>
+</svg>

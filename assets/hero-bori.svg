@@ -1,0 +1,21 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Bori, the time keeper</title>
+  <desc id="desc">A calm mint hero character with round glasses and a small hourglass.</desc>
+  <rect width="320" height="320" rx="40" fill="#EEFFF8"/>
+  <circle cx="160" cy="160" r="104" fill="#FFFFFF"/>
+  <path d="M91 181C91 127 120 86 160 86C200 86 229 127 229 181C229 227 201 258 160 258C119 258 91 227 91 181Z" fill="#60D6B1"/>
+  <path d="M117 126C126 101 142 86 160 86C178 86 194 101 203 126C190 119 176 115 160 115C144 115 130 119 117 126Z" fill="#91E8CC"/>
+  <circle cx="137" cy="163" r="14" stroke="#263B3A" stroke-width="6"/>
+  <circle cx="183" cy="163" r="14" stroke="#263B3A" stroke-width="6"/>
+  <path d="M151 163H169" stroke="#263B3A" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="137" cy="163" r="5" fill="#263B3A"/>
+  <circle cx="183" cy="163" r="5" fill="#263B3A"/>
+  <path d="M148 191C155 196 165 196 172 191" stroke="#263B3A" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="119" cy="186" r="8" fill="#FFC2CE" opacity="0.7"/>
+  <circle cx="201" cy="186" r="8" fill="#FFC2CE" opacity="0.7"/>
+  <path d="M101 204C78 210 68 198 73 181" stroke="#60D6B1" stroke-width="15" stroke-linecap="round"/>
+  <path d="M219 204C242 210 252 198 247 181" stroke="#60D6B1" stroke-width="15" stroke-linecap="round"/>
+  <path d="M221 207H250M221 246H250M226 207C226 222 245 222 245 246M245 207C245 222 226 222 226 246" stroke="#263B3A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M229 217H242M229 236H242" stroke="#FFE07A" stroke-width="7" stroke-linecap="round"/>
+  <path d="M128 249C139 257 149 261 160 261C171 261 181 257 192 249" stroke="#2FA883" stroke-width="8" stroke-linecap="round"/>
+</svg>

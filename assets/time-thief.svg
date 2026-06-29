@@ -1,0 +1,25 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Tick, the cute time thief</title>
+  <desc id="desc">A simple and cute time thief character carrying a small clock bag.</desc>
+  <rect width="320" height="320" rx="40" fill="#F7F2FF"/>
+  <circle cx="160" cy="160" r="104" fill="#FFFFFF"/>
+  <path d="M91 181C91 126 120 84 160 84C200 84 229 126 229 181C229 228 201 260 160 260C119 260 91 228 91 181Z" fill="#A98BFF"/>
+  <path d="M113 132C121 96 137 72 160 72C183 72 199 96 207 132C193 120 177 114 160 114C143 114 127 120 113 132Z" fill="#BDA8FF"/>
+  <circle cx="136" cy="164" r="10" fill="#2F2A45"/>
+  <circle cx="184" cy="164" r="10" fill="#2F2A45"/>
+  <circle cx="132" cy="160" r="3" fill="#FFFFFF"/>
+  <circle cx="180" cy="160" r="3" fill="#FFFFFF"/>
+  <path d="M145 190C153 197 167 197 175 190" stroke="#2F2A45" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="118" cy="184" r="9" fill="#FFB7C8" opacity="0.8"/>
+  <circle cx="202" cy="184" r="9" fill="#FFB7C8" opacity="0.8"/>
+  <path d="M99 196C73 205 62 190 69 174" stroke="#A98BFF" stroke-width="16" stroke-linecap="round"/>
+  <path d="M221 196C247 205 258 190 251 174" stroke="#A98BFF" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="232" cy="215" r="33" fill="#FFD86B"/>
+  <circle cx="232" cy="215" r="24" fill="#FFF7D6"/>
+  <path d="M232 201V216L244 224" stroke="#2F2A45" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M211 197C217 188 226 184 237 185" stroke="#7C63D8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M126 250C137 259 148 264 160 264C172 264 183 259 194 250" stroke="#7C63D8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M123 80L111 60M197 80L209 60" stroke="#FFD86B" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="108" cy="54" r="8" fill="#FFD86B"/>
+  <circle cx="212" cy="54" r="8" fill="#FFD86B"/>
+</svg>

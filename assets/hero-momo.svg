@@ -1,0 +1,21 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Momo, the combo maker</title>
+  <desc id="desc">A cheerful pink hero character with star hair pins and a combo badge.</desc>
+  <rect width="320" height="320" rx="40" fill="#FFF0F5"/>
+  <circle cx="160" cy="160" r="104" fill="#FFFFFF"/>
+  <path d="M92 181C92 128 121 88 160 88C199 88 228 128 228 181C228 227 201 258 160 258C119 258 92 227 92 181Z" fill="#FF8FB3"/>
+  <path d="M121 105C133 84 147 74 160 74C173 74 187 84 199 105C188 118 175 125 160 125C145 125 132 118 121 105Z" fill="#FFBDD0"/>
+  <circle cx="137" cy="163" r="10" fill="#3A2942"/>
+  <circle cx="183" cy="163" r="10" fill="#3A2942"/>
+  <path d="M146 191C154 200 166 200 174 191" stroke="#3A2942" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="118" cy="185" r="9" fill="#FFD0DC"/>
+  <circle cx="202" cy="185" r="9" fill="#FFD0DC"/>
+  <path d="M101 205C78 211 68 198 74 181" stroke="#FF8FB3" stroke-width="15" stroke-linecap="round"/>
+  <path d="M219 205C242 211 252 198 246 181" stroke="#FF8FB3" stroke-width="15" stroke-linecap="round"/>
+  <path d="M107 78L113 91L127 93L117 103L120 117L107 110L94 117L97 103L87 93L101 91L107 78Z" fill="#FFE07A"/>
+  <path d="M213 78L219 91L233 93L223 103L226 117L213 110L200 117L203 103L193 93L207 91L213 78Z" fill="#FFE07A"/>
+  <rect x="205" y="213" width="47" height="34" rx="17" fill="#FFE07A"/>
+  <path d="M218 230H239" stroke="#3A2942" stroke-width="6" stroke-linecap="round"/>
+  <path d="M229 219V241" stroke="#3A2942" stroke-width="6" stroke-linecap="round"/>
+  <path d="M128 249C139 257 149 261 160 261C171 261 181 257 192 249" stroke="#D94F7B" stroke-width="8" stroke-linecap="round"/>
+</svg>
