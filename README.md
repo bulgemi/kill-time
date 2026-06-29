@@ -70,3 +70,44 @@
 - 각 스테이지마다 새로운 방해 요소가 추가되어 단조롭지 않습니다.
 - 최고 기록 저장으로 재도전 동기를 줍니다.
 - 모바일과 데스크톱 모두에서 클릭 또는 터치로 쉽게 플레이할 수 있습니다.
+
+## 구현 완료
+
+`시간 도둑 잡기`는 정적 HTML 웹 게임으로 구현되었습니다. 별도 빌드 과정 없이 `index.html`을 브라우저에서 열어 바로 플레이할 수 있습니다.
+
+### 실행 방법
+
+로컬 서버로 확인하려면 프로젝트 루트에서 다음 명령을 실행합니다.
+
+```bash
+python3 -m http.server 4173
+```
+
+그 다음 브라우저에서 `http://localhost:4173/index.html`에 접속합니다.
+
+### 구현 파일
+
+- 최종 선택 게임: `index.html`
+- 비교 후보 구현: `candidates/agent1/index.html`, `candidates/agent2/index.html`, `candidates/agent3/index.html`, `candidates/agent4/index.html`
+- 사용 에셋: `assets/time-thief.svg`, `assets/hero-ruru.svg`, `assets/hero-momo.svg`, `assets/hero-bori.svg`
+- 검증 스크린샷: `screenshots/final-start.png`, `screenshots/final-playing.png`
+
+### 구현된 기능
+
+- 루루, 모모, 보리 중 주인공을 선택하고 캐릭터별 보너스를 적용합니다.
+- 10개 스테이지와 목표 점수, 30초 제한 시간을 반영했습니다.
+- 시간 도둑, 가짜 도둑, 시계 아이템이 단계별로 등장합니다.
+- 알림 방해, 움직이는 도둑, 순간 이동 도둑, 빠른 시간 감소 구간을 구현했습니다.
+- 연속으로 정확히 클릭하면 콤보 점수가 증가합니다.
+- 최고 기록은 브라우저 `localStorage`에 저장됩니다.
+- 데스크톱 클릭과 모바일 터치 입력을 모두 지원합니다.
+
+### 최종 선택 기준
+
+4개의 후보 구현을 만든 뒤, 시나리오 반영도, 실제 플레이 안정성, 화면 구성, 진행감 기준으로 비교했습니다. 최종 선택본은 스테이지 지도와 사건 기록 UI가 있어 게임의 진행 상황과 README의 시나리오가 가장 잘 드러나는 구현입니다.
+
+### 화면 예시
+
+![최종 시작 화면](screenshots/final-start.png)
+
+![최종 플레이 화면](screenshots/final-playing.png)
